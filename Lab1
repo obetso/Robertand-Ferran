@@ -1,0 +1,64 @@
+const int redPin = 2;     // Red LED connected to pin 2 
+const int greenPin = 3;   // Green LED connected to pin 3
+const int yellowPin = 4;  // Yellow LED connected to pin 4
+const int buttonPin = 5;  // Button connected to pin 5
+const int buzzerPin = 6;  // Buzzer connected to pin 6
+
+void setup() {
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(yellowPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(buzzerPin, OUTPUT);
+  
+  // Initially, Red light flashes until the button is pressed
+  while (digitalRead(buttonPin) == HIGH) {
+    digitalWrite(redPin, HIGH);
+    delay(1000);
+    digitalWrite(redPin, LOW);
+    delay(1000);
+  }
+  digitalWrite(redPin, LOW);
+}
+
+void loop() {
+  // Red light stays on for 24 seconds
+  digitalWrite(redPin, HIGH);
+  delay(24000);
+  
+  // During the last three seconds, flash the Red light
+  for (int i = 0; i < 6; i++) {
+    digitalWrite(redPin, HIGH);
+    delay(500);
+    digitalWrite(redPin, LOW);
+    delay(500);
+  }
+  
+  // Green light stays on for 20 seconds
+  digitalWrite(greenPin, HIGH);
+  delay(20000);
+  
+  // During the last three seconds, flash the Green light
+  for (int i = 0; i < 6; i++) {
+    digitalWrite(greenPin, HIGH);
+    delay(500);
+    digitalWrite(greenPin, LOW);
+    delay(500);
+  }
+  
+  // Yellow light stays on for 3 seconds
+  digitalWrite(yellowPin, HIGH);
+  delay(3000);
+  
+  // Transition back to Red light
+  digitalWrite(greenPin, LOW);
+  digitalWrite(yellowPin, LOW);
+  
+  // Beep the buzzer for 3 seconds before the next cycle
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(buzzerPin, HIGH);
+    delay(500);
+    digitalWrite(buzzerPin, LOW);
+    delay(500);
+  }
+}
