@@ -12,10 +12,11 @@ void setup() {
   pinMode(greenPin, OUTPUT);
   pinMode(yellowPin, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
-  pinMode(buzzerPin, OUTPUT);
- } 
- 
+  pinMode(buzzerPin, OUTPUT); 
+}
+
 void loop()
+
  // Initially, Red light flashes until the button is pressed with 1 sec delay
 {
  long int curmillis = millis();
@@ -33,47 +34,50 @@ void loop()
    }
 }
 
-
 void trafficlight () //Traffic light Function
-{
+ {
   // Red light stays on for 24 seconds
   digitalWrite(redPin, HIGH);
-  delay(24000);
+  delay(21000);
   
   // During the last three seconds, flash the Red light
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 3; i++) {
     digitalWrite(redPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
     delay(500);
     digitalWrite(redPin, LOW);
+    digitalWrite(buzzerPin, LOW);
     delay(500);
   }
   
   // Green light stays on for 20 seconds
   digitalWrite(greenPin, HIGH);
-  delay(20000);
+  delay(17000);
   
   // During the last three seconds, flash the Green light
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 3; i++) {
     digitalWrite(greenPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
     delay(500);
     digitalWrite(greenPin, LOW);
+    digitalWrite(buzzerPin, LOW);
     delay(500);
   }
   
   // Yellow light stays on for 3 seconds
-  digitalWrite(yellowPin, HIGH);
-  delay(3000);
-  
-  // Transition back to Red light
-  digitalWrite(greenPin, LOW);
-  digitalWrite(yellowPin, LOW);
-  
-  // Beep the buzzer for 3 seconds before the next cycle
-  for (int i = 0; i < 3; i++) {
+ for (int i = 0; i < 3; i++) {
+    digitalWrite(yellowPin, HIGH);
     digitalWrite(buzzerPin, HIGH);
     delay(500);
     digitalWrite(buzzerPin, LOW);
     delay(500);
   }
- trafficlight ();
+  
+  
+  // Transition back to Red light
+  digitalWrite(buzzerPin, LOW);
+  digitalWrite(yellowPin, LOW);
+  
+ 
+  trafficlight ();
 }
