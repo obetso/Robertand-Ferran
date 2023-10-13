@@ -3,6 +3,9 @@ const int greenPin = 3;   // Green LED connected to pin 3
 const int yellowPin = 4;  // Yellow LED connected to pin 4
 const int buttonPin = 5;  // Button connected to pin 5
 const int buzzerPin = 6;  // Buzzer connected to pin 6
+unsigned long prevmillis = 0;
+unsigned long curmillis = 0;
+const long onesec = 1000;
 
 void setup() {
   pinMode(redPin, OUTPUT);
@@ -10,18 +13,29 @@ void setup() {
   pinMode(yellowPin, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(buzzerPin, OUTPUT);
-  
-  // Initially, Red light flashes until the button is pressed
-  while (digitalRead(buttonPin) == HIGH) {
-    digitalWrite(redPin, HIGH);
-    delay(1000);
-    digitalWrite(redPin, LOW);
-    delay(1000);
-  }
-  digitalWrite(redPin, LOW);
+ } 
+ 
+void loop()
+ // Initially, Red light flashes until the button is pressed with 1 sec delay
+{
+ long int curmillis = millis();
+ while (millis() - curmillis < onesec)
+  {digitalWrite(redPin, HIGH);
+    if (digitalRead(buttonPin) == LOW) 
+    {trafficlight();}
+   }
+ 
+ long int prevmillis = millis();
+ while (millis() - prevmillis < onesec)
+  {digitalWrite(redPin, LOW);
+    if (digitalRead(buttonPin) == LOW) 
+    {trafficlight();}
+   }
 }
 
-void loop() {
+
+void trafficlight () //Traffic light Function
+{
   // Red light stays on for 24 seconds
   digitalWrite(redPin, HIGH);
   delay(24000);
@@ -61,4 +75,5 @@ void loop() {
     digitalWrite(buzzerPin, LOW);
     delay(500);
   }
+ trafficlight ();
 }
