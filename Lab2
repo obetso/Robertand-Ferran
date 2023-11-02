@@ -1,0 +1,177 @@
+#include <Arduino.h>
+
+// Define the width and height of the game area
+const int width = 20;
+const int height = 10;
+
+bool gameOver;
+int score;
+int snakeX, snakeY;
+int fruitX, fruitY;
+int tailX[100], tailY[100];
+int tailLength;
+
+// Enum to represent different directions
+enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
+eDirection dir;
+
+void setup() {
+  Serial.begin(9600);  // Initialize serial communication for the Serial Monitor
+  pinMode(LED_BUILTIN, OUTPUT); // Set the onboard LED pin as output
+  randomSeed(analogRead(0)); // Seed the random number generator
+
+  // Initialize game variables
+  gameOver = false;
+  score = 0;
+  dir = STOP; // The snake starts without movement
+  snakeX = width / 2; // Initial position of the snake
+  snakeY = height / 2;
+  // Place the fruit randomly within the game area
+  fruitX = random(1, width - 1);
+  fruitY = random(1, height - 1);
+  tailLength = 0; // Initialize snake's tail length
+}
+
+// Function to draw the game area and elements on the Serial Monitor
+void draw() {
+  delay(100); // Introduce a delay for better visualization
+
+  system("clear"); // Clear the Serial Monitor
+
+  // Draw the upper border
+  for (int i = 0; i < width + 2; i++)
+    Serial.print("#");
+  Serial.println();
+
+  // Draw the game area, snake, and fruit
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      if (j == 0)
+        Serial.print("#"); // Draw the left border
+      if (i == snakeY && j == snakeX)
+        Serial.print("O"); // Draw the snake's head
+      else if (i == fruitY && j == fruitX)
+        Serial.print("F"); // Draw the fruit
+      else {
+        bool print = false;
+        for (int k = 0; k < tailLength; k++) {
+          if (tailX[k] == j && tailY[k] == i) {
+            print = true;
+            Serial.print("o"); // Draw the snake's tail
+          }
+        }
+        if (!print)
+          Serial.print(" "); // Empty space
+      }
+      if (j == width - 1)
+        Serial.print("#"); // Draw the right border
+    }
+    Serial.println();
+  }
+
+  // Draw the bottom border
+  for (int i = 0; i < width + 2; i++)
+    Serial.print("#");
+  Serial.println();
+
+  // Display the player's score
+  Serial.print("Score: ");
+  Serial.println(score);
+}
+
+// Function to take input from the Serial Monitor to control the snake
+void input() {
+  if (Serial.available()) {
+    switch (Serial.read()) {
+      case 'a':
+        dir = LEFT; // Move left
+        break;
+      case 'd':
+        dir = RIGHT; // Move right
+        break;
+      case 'w':
+        dir = UP; // Move up
+        break;
+      case 's':
+        dir = DOWN; // Move down
+        break;
+      case 'x':
+        gameOver = true; // End the game
+        break;
+    }
+  }
+}
+
+// Function to manage the game logic
+void logic() {
+  // Update the position of the snake's tail
+  int prevX = tailX[0];
+  int prevY = tailY[0];
+  int prev2X, prev2Y;
+  tailX[0] = snakeX;
+  tailY[0] = snakeY;
+
+  // Move the tail segments
+  for (int i = 1; i < tailLength; i++) {
+    prev2X = tailX[i];
+    prev2Y = tailY[i];
+    tailX[i] = prevX;
+    tailY[i] = prevY;
+    prevX = prev2X;
+    prevY = prev2Y;
+  }
+
+  // Update the snake's head position based on the current direction
+  switch (dir) {
+    case LEFT:
+      snakeX--; // Move left
+      break;
+    case RIGHT:
+      snakeX++; // Move right
+      break;
+    case UP:
+      snakeY--; // Move up
+      break;
+    case DOWN:
+      snakeY++; // Move down
+      break;
+    default:
+      break;
+  }
+
+  // Check for collisions with the game borders
+  if (snakeX >= width) snakeX = 0;
+  else if (snakeX < 0) snakeX = width - 1;
+  if (snakeY >= height) snakeY = 0;
+  else if (snakeY < 0) snakeY = height - 1;
+
+  // Check for collision with the snake's tail, end the game if there's a collision
+  for (int i = 0; i < tailLength; i++) {
+    if (tailX[i] == snakeX && tailY[i] == snakeY) {
+      gameOver = true;
+    }
+  }
+
+  // Check if the snake has eaten the fruit
+  if (snakeX == fruitX && snakeY == fruitY) {
+    score += 10; // Increase the score
+    // Place the fruit at a new random location
+    fruitX = random(1, width - 1);
+    fruitY = random(1, height - 1);
+    tailLength++; // Increase the length of the snake
+  }
+}
+
+void loop() {
+  if (!gameOver) {
+    draw(); // Draw the game
+    input(); // Get input from the Serial Monitor
+    logic(); // Manage the game logic
+  } else {
+    Serial.println("Game Over");
+    digitalWrite(LED_BUILTIN, HIGH); // Turn on onboard LED when game is over
+    while (1) {
+      // Game Over, halt the execution
+    }
+  }
+}
