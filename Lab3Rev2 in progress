@@ -51,6 +51,9 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print(now.hour(), DEC);
   lcd.print(':');
+if (now.minute() < 10) {
+    tft.print ("0");
+  }
   lcd.print(now.minute(), DEC);
   lcd.print(':');
   lcd.print(now.second(), DEC);
