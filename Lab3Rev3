@@ -1,0 +1,164 @@
+#include <Wire.h>
+#include <RTClib.h>
+#include <Adafruit_ILI9341.h>
+#include <LiquidCrystal.h>
+#include <arduinoFFT.h>
+
+RTC_DS1307 rtc;
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12);  // No I2C LCD
+
+const int motorPWM = 5;      // Motor control PWM pin
+const int motorDirection1 = 4; // Motor control direction pin 1
+const int motorDirection2 = 3; // Motor control direction pin 2
+int fanSpeed = 0;         // Fan speed (0 to 3, representing Full, 3/4, 1/2, or 0)
+
+const int soundSensorPin = A0;  // Sound sensor pin
+const int buttonPin = 6; // Connect button to this pin
+const int samplingRate = 10000; // Adjust based on your requirements
+
+arduinoFFT FFT = arduinoFFT();
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.print("Fan: ");
+
+  // Initialize TFT display
+  tft.begin();
+  tft.setRotation(3);  // Adjust the rotation if needed
+  
+  // Motor setup
+  pinMode(motorPWM, OUTPUT);
+  pinMode(motorDirection1, OUTPUT);
+  pinMode(motorDirection2, OUTPUT);
+
+  // RTC setup
+  Serial.begin(9600);
+  Wire.begin();
+  rtc.begin();
+  //rtc.adjust(DateTime(__DATE__, __TIME__));
+  if (!rtc.isrunning()) {
+    lcd.print("RTC not running!");
+   
+  }
+
+  // Sound sensor setup
+  pinMode(soundSensorPin, INPUT);
+
+  // Button setup
+  pinMode(buttonPin, INPUT_PULLUP);
+}
+
+void loop() {
+  DateTime now = rtc.now();
+
+  // Update clock on LCD
+  lcd.setCursor(0, 1);
+  lcd.print(now.hour(), DEC);
+  lcd.print(':');
+if (now.minute() < 10) {
+    tft.print ("0");
+  }
+  lcd.print(now.minute(), DEC);
+  lcd.print(':');
+  lcd.print(now.second(), DEC);
+
+  // Read sound sensor
+  int sensorValue = analogRead(soundSensorPin);
+
+  // Check if the button is pressed
+  if (digitalRead(buttonPin) == LOW) {
+    increaseFanSpeed();
+    delay(500); // Debounce delay
+  }
+
+// Example usage of tft
+  tft.setCursor(0, 0);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(2);
+  tft.println("Hello, World!");
+ 
+// Perform FFT
+
+  //int samples[samplingRate];
+ // FFT.Windowing(samples, samplingRate, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  //FFT.Compute(samples, samplingRate, FFT_FORWARD);
+  //double peakFrequency = FFT.MajorPeak(samples, samplingRate, samplingRate);
+
+  // Compare peak frequency with known notes
+//  if (isNoteInRange(peakFrequency, 262, 2)) { // C4
+ //   increaseFanSpeed();
+ // } else if (isNoteInRange(peakFrequency, 440, 2)) { // A4
+   // decreaseFanSpeed();
+  //}
+
+  // Update fan rotation direction and speed on LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Fan: ");
+  lcd.print(getFanDirection());
+  lcd.print(" Speed: ");
+  lcd.print(getFanSpeed());
+
+  delay(1000); // Update every second
+}
+
+void increaseFanSpeed() {
+  if (fanSpeed < 3) {
+    fanSpeed++;
+    updateMotorSpeed();
+  }
+}
+
+void decreaseFanSpeed() {
+  if (fanSpeed > 0) {
+    fanSpeed--;
+    updateMotorSpeed();
+  }
+}
+
+void updateMotorSpeed() {
+  // Map fanSpeed to PWM range (0-255)
+  int pwmValue = map(fanSpeed, 0, 3, 0, 255);
+  
+  analogWrite(motorPWM, pwmValue);
+
+  // Implement motor direction control based on your motor driver (L293D)
+  if (fanSpeed > 0) {
+    digitalWrite(motorDirection1, HIGH);
+    digitalWrite(motorDirection2, LOW);
+  } else {
+    // Stop the motor when speed is 0
+    digitalWrite(motorDirection1, LOW);
+    digitalWrite(motorDirection2, LOW);
+  }
+}
+
+String getFanDirection() {
+  // Implement fan direction logic based on your motor control (L293D)
+  if (fanSpeed > 0) {
+    return "C";
+  } else if (fanSpeed < 0) {
+    return "CC";
+  } else {
+    return "Stop";
+  }
+}
+
+String getFanSpeed() {
+  switch (fanSpeed) {
+    case 0:
+      return "Stopped";
+    case 1:
+      return "Low";
+    case 2:
+      return "Medium";
+    case 3:
+      return "High";
+    default:
+      return "Unknown";
+  }
+}
+
+bool isNoteInRange(double frequency, double target, double errorPercentage) {
+  double errorRange = target * (errorPercentage / 100);
+  return (frequency >= (target - errorRange)) && (frequency <= (target + errorRange));
+}
